@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WaterIQ – Smart Tank Controller</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+    <div class="app">
+        <header class="app__header">
+            <div class="brand">
+                <div class="brand__text">
+                    <h1>WaterIQ</h1>
+                    <P>Intelligent For Water Management</P>
+                    
+                </div>
+            </div>
+            <div class="header__actions">
+                <button id="themeToggle" class="btn btn--ghost" aria-label="Toggle theme">🌓</button>
+            </div>
+        </header>
+
+        <main class="grid">
+            <section class="panel tank" aria-labelledby="tankLabel">
+                <div class="panel__header">
+                    <h2 id="tankLabel">Tank</h2>
+                    <div class="live-chip" id="liveChip">LIVE</div>
+                </div>
+                <div class="tank__visual">
+                    <svg class="tank-svg" viewBox="0 0 260 360" aria-hidden="true">
+                        <defs>
+                            <linearGradient id="waterGradient" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stop-color="#7bc9ff"/>
+                                <stop offset="100%" stop-color="#2b8fff"/>
+                            </linearGradient>
+                            <filter id="glass">
+                                <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="blur"/>
+                                <feOffset in="blur" dx="0" dy="2" result="offset"/>
+                                <feComponentTransfer>
+                                    <feFuncA type="linear" slope="0.25"/>
+                                </feComponentTransfer>
+                                <feMerge>
+                                    <feMergeNode/>
+                                    <feMergeNode in="SourceGraphic"/>
+                                </feMerge>
+                            </filter>
+                        </defs>
+
+                        <g>
+                            <rect x="30" y="20" width="200" height="320" rx="20" ry="20" class="tank-outline" filter="url(#glass)" />
+                            <g class="water-group">
+                                <rect id="waterFill" x="36" y="26" width="188" height="308" rx="16" ry="16" fill="url(#waterGradient)" />
+                                <g class="wave" id="wave1">
+                                    <path d="M30 0 Q 60 20 90 0 T 150 0 T 210 0"/>
+                                </g>
+                                <g class="wave wave--delay" id="wave2">
+                                    <path d="M30 0 Q 60 16 90 0 T 150 0 T 210 0"/>
+                                </g>
+                            </g>
+                        </g>
+                    </svg>
+                    <div class="tank__overlay">
+                        <div class="stat">
+                            <div class="stat__label">Level</div>
+                            <div class="stat__value"><span id="levelPercent">0</span>%</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat__label">Motor</div>
+                            <div class="stat__value">
+                                <span id="motorStateBadge" class="badge">OFF</span>
+                            </div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat__label">Mode</div>
+                            <div class="stat__value"><span id="modeText">AUTO</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tank__footer">
+                    <div class="progress">
+                        <div class="progress__bar" id="progressBar"></div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="panel controls" aria-labelledby="controlsLabel">
+                <div class="panel__header">
+                    <h2 id="controlsLabel">Controls</h2>
+                </div>
+
+                <div class="controls__row">
+                    <div class="control">
+                        <label class="switch">
+                            <input type="checkbox" id="modeToggle" checked />
+                            <span class="slider"></span>
+                        </label>
+                        <div class="control__text">
+                            <div class="control__title">Smart Auto Mode</div>
+                            <div class="control__desc">Automatically turns motor ON/OFF based on thresholds</div>
+                        </div>
+                    </div>
+
+                    <div class="control">
+                        <button id="motorToggle" class="btn">
+                            <span class="btn__icon" id="motorIcon">▶</span>
+                            <span id="motorToggleText">Start Motor</span>
+                        </button>
+                        <div class="control__text">
+                            <div class="control__title">Manual Control</div>
+                            <div class="control__desc">Available only in Manual mode</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="divider"></div>
+
+                <div class="thresholds">
+                    <div class="threshold">
+                        <label for="minSlider">Min Level to Start</label>
+                        <input type="range" id="minSlider" min="0" max="100" value="15" oninput="updateMinValue(this.value)">
+                        <span id="minValue">15%</span>
+                    </div>
+
+                    <div class="threshold">
+                        <label for="maxSlider">Max Level to Stop</label>
+                        <input type="range" id="maxSlider" min="0" max="100" value="85" oninput="updateMaxValue(this.value)">
+                        <span id="maxValue">85%</span>
+                    </div>
+                </div>
+
+                <div class="tips">Tip: Auto starts motor when level ≤ Min, stops at ≥ Max.</div>
+            </section>
+
+            <section class="panel activity" aria-labelledby="activityLabel">
+                <div class="panel__header">
+                    <h2 id="activityLabel">Activity</h2>
+                    <div class="actions">
+                        <button id="clearLog" class="btn btn--ghost">Clear</button>
+                    </div>
+                </div>
+                <ul id="logList" class="log" aria-live="polite" aria-relevant="additions"></ul>
+            </section>
+        </main>
+
+        <footer class="app__footer">
+            <div>
+                <span>© <span id="yearSpan"></span> WaterIQ</span>
+                <span class="dot">•</span>
+                <a href="https://github.com/" target="_blank" rel="noreferrer">Docs</a>
+            </div>
+            <div>
+                <button id="resetSettings" class="btn btn--ghost">Reset Settings</button>
+            </div>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+      function updateMinValue(value) {
+        document.getElementById('minValue').textContent = value + '%';
+      }
+
+      function updateMaxValue(value) {
+        document.getElementById('maxValue').textContent = value + '%';
+      }
+    </script>
+</body>
+</html>
+
+
